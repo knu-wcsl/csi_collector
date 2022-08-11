@@ -71,7 +71,7 @@ class Client:
                 print('sending packet (%d bytes), remaining: %d' % (len(pkt_to_send), self.packet_queue.qsize()))
                 self.client_socket.recv(Values.BUFFER_SIZE)
             else:                               # write results to file
-                file.write('%f,%s\n', elapsed_time, pkt.hex())
+                file.write('%f, %s\n' % (elapsed_time, pkt.hex()))
                 file.flush()
                 
 

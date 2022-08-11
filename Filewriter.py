@@ -42,5 +42,5 @@ class Filewriter(multiprocessing.Process):
             n = struct.unpack('I', pkt[8:12])[0]
             
             if len(pkt) == n + 12:
-                self.file.write('%f\t%f\t%f\t%s\t%s\n' % (elapsed_time, t1, t2, name, pkt[12:].hex()))   
+                self.file.write('%f, %f, %f, %s, %s\n' % (elapsed_time, t1, t2, name, pkt[12:].hex()))   
                 flag_req_flush = True    
