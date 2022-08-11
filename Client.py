@@ -5,7 +5,7 @@ import datetime
 import time
 import struct
 import os
-from .Collector import Collector
+from Collector import Collector
 import Values
 
 SLEEP_TIME = 0.01
