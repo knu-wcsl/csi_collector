@@ -23,25 +23,20 @@ However host and port options are optional. If these options are not provided, t
 
 Examples:
 
-1. Run server mode with given IP and port
-```
-python3 main.py server -h 192.168.1.1 -p 9999
-```
+1. Run server mode with given IP and port  
+``` python3 main.py server -h 192.168.1.1 -p 9999 ```
 
-2. Collect CSI of Wi-Fi packets transmitting on channel 1 with 20 MHz bandwidth and transfer the collected results to the host
-```
-sudo python3 main.py client -h 192.168.1.1 -p 9999 -c 1 -b 20
-```
+2. Collect CSI of Wi-Fi packets transmitting on channel 1 with 20 MHz bandwidth and transfer the collected results to the host  
+``` sudo python3 main.py client -h 192.168.1.1 -p 9999 -c 1 -b 20 ```
 
-3. Collect CSI and store the results to the local device
-```
-sudo python3 main.py client -c 1 b -20
-```
+3. Collect CSI and store the results to the local device  
+```sudo python3 main.py client -c 1 b -20```
 
 
 ## Installation
 1. To use Nexmon CSI tool, we recommend to configure Raspberry Pi by following the instructions in this link: https://github.com/nexmonster/nexmon_csi/tree/pi-5.10.92  
-2. Scapy python library is additionally required to capture UDP packets, which carry CSI data (sudo pip install scapy)
+2. Scapy python library is additionally required to capture UDP packets, which carry CSI data: 
+```sudo pip install scapy```
 
 
 ## Analyzing the CSI
