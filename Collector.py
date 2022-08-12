@@ -11,6 +11,10 @@ class Collector(multiprocessing.Process):       # create instance running on sep
         self.configure_monitor_mode()
 
 
+    def __del__(self):
+        os.system('ip link set mon0 down')
+
+
     def configure_monitor_mode(self):
         if not os.path.isdir('/sys/class/net/mon0'):
             os.system('ifconfig wlan0 up')
@@ -29,7 +33,7 @@ class Collector(multiprocessing.Process):       # create instance running on sep
         # Overloaded function provided by multiprocessing.Process. Called upon start() signal
         os.system('ip link set mon0 up')
         self.counter = 0
-        sniff(filter='udp port 5500', iface='wlan0', prn = self.process_packet, count = 1000, store = 0)
+        sniff(filter='udp port 5500', iface='wlan0', prn = self.process_packet, count = 0, store = 0)
         
 
     def process_packet(self, packet):

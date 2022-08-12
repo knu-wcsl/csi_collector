@@ -53,7 +53,7 @@ class Client:
             if not os.path.isdir('measured_data'):
                 os.mkdir('measured_data')
             now = datetime.datetime.now()
-            filename = 'measured_data/client_%s_%s.txt' % (self.mac_addr.replace(':', ''), now.strftime('%y%m%d_%H%M%S.txt'))
+            filename = 'measured_data/client_%s_%s.txt' % (self.mac_addr.replace(':', ''), now.strftime('%y%m%d_%H%M%S'))
             file = open(filename, 'w')
             
         while True:
