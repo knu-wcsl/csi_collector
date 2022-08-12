@@ -21,13 +21,13 @@ However host and port options are optional. If these options are not provided, t
 
 Examples:
 
-1. Run server mode with given IP and port  
+1. (server mode) open server with given IP and port  
 ``` python3 main.py server -h 192.168.1.1 -p 9999 ```
 
-2. Collect CSI of Wi-Fi packets transmitting on channel 1 with 20 MHz bandwidth and transfer the collected results to the host  
+2. (client mode) Collect CSI of Wi-Fi packets transmitting on channel 1 with 20 MHz bandwidth and transfer the collected results to the host  
 ``` sudo python3 main.py client -h 192.168.1.1 -p 9999 -c 1 -b 20 ```
 
-3. Collect CSI and store the results to the local device  
+3. (client mode) Collect CSI and store the results to the local device  
 ```sudo python3 main.py client -c 1 b -20```
 
 
