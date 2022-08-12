@@ -5,9 +5,7 @@ The collected CSI data can be either stored in local device or transferred to a 
 
 ## Usage
 
-Usage
-
-    (sudo) python3 main.py [server/client] [options]
+Usage: ```(sudo) python3 main.py [server/client] [options]```
 
 * server/client: determin server of client modes
 * option -h host: specify host (e.g., -h 192.168.0.1)
