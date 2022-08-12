@@ -12,7 +12,7 @@ Usage: ```(sudo) python3 main.py [server/client] [options]```
 * option -p port: specify port number (e.g., -p 9999)
 * option -c channel: specify Wi-Fi channel (e.g., -c 1)
 * option -b bandwidth: specify Wi-Fi bandwidth (e.g., -b 40)
-* Note that sudo privilege is required for client mode as Wi-Fi interface needs to be configured.
+* **sudo privilege is required for client mode** as Wi-Fi interface needs to be configured.
 
 
 For server mode, host and port options are necessary to open server socket. For client mode, channel and bandwidth options are necessary to capture CSI of Wi-Fi packets transmitting on the specified channel. 
