@@ -1,8 +1,7 @@
 ## CSI Collector
 
 This project collects channel state information (CSI) of Wi-Fi packets using Raspberry Pi with Nexmon CSI tool.
-The collected CSI data can be stored in local device or transferred to a server. 
-Both server/client programs are included in this project
+The collected CSI data can be either stored in local device or transferred to a server. 
 
 ## Usage
 
@@ -42,7 +41,7 @@ sudo python3 main.py client -c 1 b -20
 
 ## Installation
 1. To use Nexmon CSI tool, we recommend to configure Raspberry Pi by following the instructions in this link: https://github.com/nexmonster/nexmon_csi/tree/pi-5.10.92  
-2. Scapy python library is additionally required to capture UDP packets, which carries CSI data (sudo pip install scapy)
+2. Scapy python library is additionally required to capture UDP packets, which carry CSI data (sudo pip install scapy)
 
 
 ## Analyzing the CSI
