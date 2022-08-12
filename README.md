@@ -40,7 +40,7 @@ Examples:
 ## Analyzing the CSI
 
 The collected CSI data will be stored in a text file under 'measured_data' folder.
-Matlab scripts will be available to analyze the collected CSI data.
+Matlab scripts can be used to parse collected CSI data. Please run ```plot_all_csi.m``` script to see some results.
 
 
 ## Contact 
