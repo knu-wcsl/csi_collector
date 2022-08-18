@@ -6,8 +6,9 @@ import time
 import struct
 import os
 from Collector import Collector
-import Values
 
+HANDSHAKE_KEY = 'clkj209cjE!4k2GV#w02cl'
+BUFFER_SIZE = 2048
 SLEEP_TIME = 0.01
 
 class Client:
@@ -26,14 +27,14 @@ class Client:
             print('Connecting to %s...' % host)
             try:
                 self.client_socket.connect((host, port))
-                msg_from_server = self.client_socket.recv(Values.BUFFER_SIZE)
+                msg_from_server = self.client_socket.recv(BUFFER_SIZE)
                 print(msg_from_server)
 
-                self.client_socket.send(str.encode(self.mac_addr))          # send mac address
-                self.client_socket.recv(Values.BUFFER_SIZE)
+                self.client_socket.send(str.encode(self.mac_addr))      # send mac address
+                self.client_socket.recv(BUFFER_SIZE)
 
                 self.flag_connected_to_server = True
-                self.client_socket.send(str.encode(Values.HANDSHAKE_KEY))   # send handshake key
+                self.client_socket.send(str.encode(HANDSHAKE_KEY))      # send handshake key
             except socket.error as e:
                 print(str(e))
                 exit()
@@ -49,7 +50,7 @@ class Client:
 
 
     def run(self):
-        if not self.flag_connected_to_server:   # save to local device
+        if not self.flag_connected_to_server:   # save CSI to local device
             if not os.path.isdir('measured_data'):
                 os.mkdir('measured_data')
             now = datetime.datetime.now()
@@ -57,7 +58,7 @@ class Client:
             file = open(filename, 'w')
             
         while True:
-            if self.packet_queue.empty():   # if queue is empty -> sleep
+            if self.packet_queue.empty():       # if queue is empty -> sleep
                 time.sleep(SLEEP_TIME)
                 continue
 
@@ -69,9 +70,7 @@ class Client:
                 pkt_to_send = struct.pack('f', elapsed_time) + struct.pack('f', elapsed_time_send) + struct.pack('I', len(pkt)) + pkt
                 self.client_socket.send(pkt_to_send)
                 print('sending packet (%d bytes), remaining: %d' % (len(pkt_to_send), self.packet_queue.qsize()))
-                self.client_socket.recv(Values.BUFFER_SIZE)
-            else:                               # write results to file
+                self.client_socket.recv(BUFFER_SIZE)
+            else:                               # write results to the local file
                 file.write('%f, %s\n' % (elapsed_time, pkt.hex()))
                 file.flush()
-                
-
