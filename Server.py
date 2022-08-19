@@ -55,9 +55,9 @@ class Server:
 
         # Classify client type
         connection.send(str.encode('You are connected to %s:%d' % (self.host, self.port)))
-        mac_addr = connection.recv(BUFFER_SIZE)         # when connected, clients are supposed to send their mac addresses and keys depending on their purposes
+        mac_addr = connection.recv(BUFFER_SIZE).decode('UTF-8')         # when connected, clients are supposed to send their mac addresses and keys depending on their purposes
         connection.send(str.encode('Received'))
-        received_key = connection.recv(BUFFER_SIZE)
+        received_key = connection.recv(BUFFER_SIZE).decode('UTF-8')
 
         if received_key == KEY_CSI_CLIENT:
             if not self.flag_file_opened:                               # open a file to write CSI data
@@ -68,7 +68,7 @@ class Server:
                 self.flag_file_opened = True
 
             self.client_counter += 1
-            client = ConnectedClient(TYPE_CSI_CLIENT, self.client_counter, connection, addr, self.init_time, self.packet_queue, self.close_connection)
+            client = ConnectedClient(TYPE_CSI_CLIENT, mac_addr, self.client_counter, connection, addr, self.init_time, self.packet_queue, self.close_connection, None)
             self.client_list.append(client)
 
 
@@ -117,8 +117,9 @@ class Server:
         return 'A'
 
 class ConnectedClient:
-    def __init__(self, client_type, num, connection, addr, init_time, packet_queue, close_callback, server_status):
+    def __init__(self, client_type, mac_addr, num, connection, addr, init_time, packet_queue, close_callback, server_status):
         self.type = client_type
+        self.name = mac_addr
         self.num = num
         self.connection = connection
         self.ip = addr[0]
@@ -137,6 +138,7 @@ class ConnectedClient:
             while True:
                 pkt = self.connection.recv(BUFFER_SIZE)
                 if len(pkt) == 0:
+                    print('CSI client %s is disconnected' % self.name)
                     break
 
                 self.packet_counter += 1
