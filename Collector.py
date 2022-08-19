@@ -12,6 +12,7 @@ class Collector(multiprocessing.Process):       # create instance running on sep
 
     def __del__(self):
         os.system('ip link set mon0 down')
+        self.queue.put((-1, None))  # stop writing file
 
 
     def configure_monitor_mode(self):
