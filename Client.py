@@ -63,6 +63,13 @@ class Client:
                 continue
 
             (elapsed_time, pkt) = self.packet_queue.get()
+            if elapsed_time < 0:                # stop
+                if self.flag_connected_to_server:
+                    self.client_socket.close()
+                else:
+                    file.close()
+                break
+
             self.count += 1
             elapsed_time_send = time.time() - self.init_time
 
@@ -70,7 +77,6 @@ class Client:
                 pkt_to_send = struct.pack('f', elapsed_time) + struct.pack('f', elapsed_time_send) + struct.pack('I', len(pkt)) + pkt
                 self.client_socket.send(pkt_to_send)
                 print('sending packet (%d bytes), remaining: %d' % (len(pkt_to_send), self.packet_queue.qsize()))
-                self.client_socket.recv(BUFFER_SIZE)
             else:                               # write results to the local file
                 file.write('%f, %s\n' % (elapsed_time, pkt.hex()))
                 file.flush()
