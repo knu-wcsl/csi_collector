@@ -7,7 +7,7 @@ import struct
 import os
 from Collector import Collector
 
-HANDSHAKE_KEY = 'clkj209cjE!4k2GV#w02cl'
+KEY_CSI_CLIENT = 'clkj209cjE!4k2GV#w02'
 BUFFER_SIZE = 2048
 SLEEP_TIME = 0.01
 
@@ -33,8 +33,8 @@ class Client:
                 self.client_socket.send(str.encode(self.mac_addr))      # send mac address
                 self.client_socket.recv(BUFFER_SIZE)
 
+                self.client_socket.send(str.encode(KEY_CSI_CLIENT))     # send key
                 self.flag_connected_to_server = True
-                self.client_socket.send(str.encode(HANDSHAKE_KEY))      # send handshake key
             except socket.error as e:
                 print(str(e))
                 exit()
