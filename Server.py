@@ -190,11 +190,12 @@ class ConnectedClient:
                 if cmd == 'CMD_STATUS':
                     self.connection.send(str.encode(self.server_status_callback()))
                 
-                if cmd == 'CMD_TIME':
-                    self.connection.send(str.encode('%.6f' % time.time()))
-
+                elif cmd == 'CMD_GET_TIME':
+                    self.connection.send(str.encode('%d' % (time.time() * 1000)))
+                    
                 else:
-                    self.connection.send(str.decode("Undefined command"))
+                    print('Undefined command: %s' % cmd)
+                    self.connection.send(str.encode('Undefined command: %s' % cmd))
 
         # close connection
         self.connection.close()
