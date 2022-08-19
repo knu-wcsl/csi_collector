@@ -31,9 +31,8 @@ class Client:
                 print(msg_from_server)
 
                 self.client_socket.send(str.encode(self.mac_addr))      # send mac address
-                self.client_socket.recv(BUFFER_SIZE)
-
                 self.client_socket.send(str.encode(KEY_CSI_CLIENT))     # send key
+                self.client_socket.recv(BUFFER_SIZE)
                 self.flag_connected_to_server = True
             except socket.error as e:
                 print(str(e))
