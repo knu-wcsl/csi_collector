@@ -1,7 +1,6 @@
 import multiprocessing
 import os
 from scapy.all import *
-import threading
 
 class Collector(multiprocessing.Process):       # create instance running on seperate process
     def __init__(self, packet_queue, init_time):
