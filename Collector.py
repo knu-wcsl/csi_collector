@@ -1,6 +1,5 @@
 import multiprocessing
 import os
-from socket import PACKET_MULTICAST
 from scapy.all import *
 
 
@@ -18,8 +17,8 @@ class Collector:        # create instance running on seperate process
 
     def configure_monitor_mode(self):
         if not os.path.isdir('/sys/class/net/mon0'):
-            os.system('ifconfig wlan0 up')
             os.system('iw dev wlan0 interface add mon0 type monitor')
+            os.system('ifconfig wlan0 up')
         self.stop()
         
     def set_channel(self, ch, bw):
@@ -33,12 +32,13 @@ class Collector:        # create instance running on seperate process
             os.system('nexutil -Iwlan0 -s500 -b -l34 -v%s' % csi_param)
     
     def start(self, ch, bw):
-        self.set_channel(ch, bw)
         print('monitoring mode up')
         os.system('ip link set mon0 up')
+        self.set_channel(ch, bw)
 
     def stop(self):
         print('monitoring mode down')
+        # os.system('iw dev mon0 del')
         os.system('ip link set mon0 down')
 
 
@@ -60,6 +60,4 @@ class PacketListener(multiprocessing.Process):
     def process_packet(self, packet):
         self.counter += 1
         elapsed_time = time.time() - self.init_time
-
-        print('counter: %d, elapsed_time: %f s' % (self.counter, elapsed_time))
         self.queue.put((elapsed_time, bytes(packet['UDP'].payload)))

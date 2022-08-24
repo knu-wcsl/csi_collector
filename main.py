@@ -57,5 +57,5 @@ else:
         client = Client(host, port, ch, bw)
         client.run()
     except Exception as e:
-        print('Failed to ')
+        print('Failed to run client program (%s)' % str(e))
         exit()
