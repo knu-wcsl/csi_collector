@@ -7,7 +7,7 @@ The collected CSI data can be either stored in local device or transferred to a 
 
 Usage: ```(sudo) python3 main.py [server/client] [options]```
 
-* server/client: determin server of client modes
+* server/client: determine server of client modes
 * option -h host: specify host (e.g., -h 192.168.0.1)
 * option -p port: specify port number (e.g., -p 9999)
 * option -c channel: specify Wi-Fi channel (e.g., -c 1)
@@ -34,7 +34,7 @@ Examples:
 ## Installation
 1. To use Nexmon CSI tool, we recommend to configure Raspberry Pi by following the instructions in this link: https://github.com/nexmonster/nexmon_csi/tree/pi-5.10.92  
 2. Scapy python library is additionally required to capture UDP packets, which carry CSI data: 
-```sudo pip install scapy```
+```sudo pip install scapy``` or ```sudo apt install python3-scapy```
 
 
 ## Analyzing the CSI
