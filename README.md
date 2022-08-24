@@ -34,7 +34,7 @@ Examples:
 ## Installation
 1. To use Nexmon CSI tool, we recommend to configure Raspberry Pi by following the instructions in this link: https://github.com/nexmonster/nexmon_csi/tree/pi-5.10.92  
 2. Scapy python library is additionally required to capture UDP packets, which carry CSI data: 
-```sudo pip install scapy```
+```sudo pip install scapy``` or ```sudo apt install python3-scapy```
 
 
 ## Analyzing the CSI
