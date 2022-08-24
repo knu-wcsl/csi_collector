@@ -7,8 +7,8 @@ import sys
 flag_server = False
 host = None
 port = None
-ch = None
-bw = None
+ch = 1
+bw = 20
 
 try:
     if sys.argv[1] == 'server':
