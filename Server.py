@@ -1,27 +1,17 @@
-from pickle import TRUE
 from socket import AF_INET, SOCK_STREAM
 import socket
 import time
 import threading
 import multiprocessing
 from Filewriter import Filewriter
-
-TYPE_CSI_CLIENT = 0
-TYPE_FILE_TRANSFER_CLIENT = 1
-TYPE_STATUS_CHECKER_CLIENT = 2
-
-KEY_CSI_CLIENT = 'clkj209cjE!4k2GV#w02'
-KEY_FILE_TRANSFER_CLIENT = '#N2nb023flkn3lkj%!df'
-KEY_STATUS_CHECK_CLIENT = 'b0D^GV#ADG213kjhb0#G'
-
-BUFFER_SIZE = 2048
-SLEEP_TIME = 0.1
-FILE_CLOSE_TIME = 3600              # close file when the sever is idle for this amount of time
+import Constant
 
 class Server:
     def __init__(self, host, port):
         self.client_counter = 0             # number of active clients
         self.client_list = []               # list of clients
+        self.master_android_client = None   # only master control CSI start/stop
+
         self.host = host
         self.port = port
 
@@ -56,11 +46,12 @@ class Server:
 
         # Classify client type
         connection.send(str.encode('You are connected to %s:%d' % (self.host, self.port)))
-        mac_addr = connection.recv(BUFFER_SIZE).decode('UTF-8')         # when connected, clients are supposed to send their mac addresses and keys depending on their purposes
-        received_key = connection.recv(BUFFER_SIZE).decode('UTF-8')
+        mac_addr = connection.recv(Constant.BUFFER_SIZE).decode('UTF-8')         # when connected, clients are supposed to send their mac addresses and keys depending on their purposes
+        received_key = connection.recv(Constant.BUFFER_SIZE).decode('UTF-8')
         connection.send(str.encode('Received'))
 
-        if received_key == KEY_CSI_CLIENT:
+        if received_key == Constant.KEY_CSI_CLIENT:
+            print('connected new csi client')
             if not self.flag_file_opened:                               # open a file to write CSI data
                 self.packet_queue = multiprocessing.Manager().Queue()
                 self.init_time = time.time()
@@ -69,21 +60,23 @@ class Server:
                 self.flag_file_opened = True
 
             self.client_counter += 1
-            client = ConnectedClient(TYPE_CSI_CLIENT, mac_addr, self.client_counter, connection, addr, self.close_connection, init_time=self.init_time, packet_queue=self.packet_queue)
+            client = ConnectedClient(Constant.TYPE_CSI_CLIENT, mac_addr, self.client_counter, connection, addr, self.callback_fun, init_time=self.init_time, packet_queue=self.packet_queue)
             self.client_list.append(client)
 
 
-        elif received_key == KEY_FILE_TRANSFER_CLIENT:
+        elif received_key == Constant.KEY_FILE_TRANSFER_CLIENT:
+            print('connected new file transfer client')
             self.client_counter += 1
-            client = ConnectedClient(TYPE_FILE_TRANSFER_CLIENT, mac_addr, self.client_counter, connection, addr, self.close_connection)
+            client = ConnectedClient(Constant.TYPE_FILE_TRANSFER_CLIENT, mac_addr, self.client_counter, connection, addr, self.callback_fun)
             self.client_list.append(client)
 
 
-        elif received_key == KEY_STATUS_CHECK_CLIENT:
+        elif received_key == Constant.KEY_ANDROID_CLIENT:
             self.client_counter += 1
-            client = ConnectedClient(TYPE_STATUS_CHECKER_CLIENT, mac_addr, self.client_counter, connection, addr, self.close_connection, server_status=self.get_server_status)
+            client = ConnectedClient(Constant.TYPE_ANDROID_CLIENT, mac_addr, self.client_counter, connection, addr, self.callback_fun)
             self.client_list.append(client)
-
+            if self.master_android_client == None:
+                self.master_android_client = self.client_counter
         else:
             print('Unidentified key')
             connection.close()
@@ -99,7 +92,7 @@ class Server:
             if self.flag_file_opened:               # check if there are CSI clients and keep the file opened
                 flag_exist_csi_client = False
                 for client in self.client_list:
-                    if client.type == TYPE_CSI_CLIENT:
+                    if client.type == Constant.TYPE_CSI_CLIENT:
                         flag_exist_csi_client = True
                         break
                 
@@ -108,17 +101,43 @@ class Server:
                 else:
                     idle_time += check_interval
 
-                if idle_time > FILE_CLOSE_TIME:     # timeout -> close the opened file
+                if idle_time > Constant.FILE_CLOSE_TIME:        # timeout -> close the opened file
                     self.packet_queue.put(-1, None, None)
                     self.flag_file_opened = False
             time.sleep(check_interval)
-    
 
-    def close_connection(self, num):        # remove client which number is 'num'
-        for i in range(len(self.client_list)):
-            if self.client_list[i].num == num:
-                self.client_list.pop(i)
-                break
+
+    def callback_fun(self, events):
+        event_type = events[0]
+        if event_type == Constant.EVENT_CLOSE_CONNECTION:       # remove client
+            client_num = events[1]
+            for i in range(len(self.client_list)):
+                if self.client_list[i].num == client_num:
+                    self.client_list.pop(i)
+                    break
+            if client_num == self.master_android_client:
+                # find new master client
+                self.master_android_client = None
+                for client in self.client_list:
+                    if client.type == Constant.TYPE_ANDROID_CLIENT:
+                        self.master_android_client = client.num
+                        break
+
+        elif event_type == Constant.EVENT_SERVER_STATUS:
+            return self.get_server_status()
+
+        elif event_type in [Constant.EVENT_START_CSI, Constant.EVENT_STOP_CSI]:     # start/stop CSI collection
+            # check if client is master client
+            client_num = events[-1]
+            if client_num != self.master_android_client:
+                return 'You are not master client'
+            
+            for client in self.client_list:
+                count = 0
+                if client.type == Constant.TYPE_CSI_CLIENT:
+                    client.add_cmd(events)
+                    count += 1
+            return 'Sent CSI command to %d devices' % count
 
 
     def get_server_status(self):
@@ -128,23 +147,24 @@ class Server:
 
         csi_client_status = 'CSI client list:\n'
         for client in self.client_list:
-            if client.type == TYPE_CSI_CLIENT:
+            if client.type == Constant.TYPE_CSI_CLIENT:
                 n_csi_client += 1
                 csi_client_status += '%s: transferred %d packets\n' % (client.name, client.packet_counter)
-            elif client.type == TYPE_FILE_TRANSFER_CLIENT:
+            elif client.type == Constant.TYPE_FILE_TRANSFER_CLIENT:
                 n_file_transfer_client += 1
-            elif client.type == TYPE_STATUS_CHECKER_CLIENT:
+            elif client.type == Constant.TYPE_ANDROID_CLIENT:
                 n_status_check_client += 1
 
-        status = '%d csi, %d file transfer, %d status checke clients\n' % (n_csi_client, n_file_transfer_client, n_status_check_client)
+        status = '%d csi, %d file transfer, %d status check clients\n' % (n_csi_client, n_file_transfer_client, n_status_check_client)
         status += csi_client_status
 
         return status
             
 
+
 class ConnectedClient:
-    def __init__(self, client_type, mac_addr, num, connection, addr, close_callback,
-                    init_time = None, packet_queue = None, server_status = None):
+    def __init__(self, client_type, mac_addr, num, connection, addr, server_callback,
+                    init_time = None, packet_queue = None):
         self.type = client_type
         self.name = mac_addr
         self.num = num
@@ -153,50 +173,68 @@ class ConnectedClient:
         self.port = addr[1]
         self.init_time = init_time
         self.packet_queue = packet_queue
-        self.close_callback = close_callback
-        self.server_status_callback = server_status
+        self.server_callback = server_callback
         self.packet_counter = 0
+        self.cmd_queue = []
 
         thread = threading.Thread(target = self.message_exchange_thread)
         thread.start()
 
+
+    def add_cmd(self, cmd):
+        self.cmd_queue.append(cmd)
+
     def message_exchange_thread(self):
-        if self.type == TYPE_CSI_CLIENT:    # keep receiving CSI data from client and put them to the queue
+        if self.type == Constant.TYPE_CSI_CLIENT:    # keep receiving CSI data from client and put them to the queue
             print('Connected new CSI client %s' % self.name)
             while True:
-                pkt = self.connection.recv(BUFFER_SIZE)
+                pkt = self.connection.recv(Constant.BUFFER_SIZE)
                 if len(pkt) == 0:
                     print('Disconnected CSI client %s' % self.name)
                     break
+
+                if len(pkt) < 100:  # control message
+                    cmd = msg.decode('UTF-8')
+
 
                 self.packet_counter += 1
                 elapsed_time = time.time() - self.init_time
                 print('%.2fs: packet num: %d (%d bytes) from %s (%s)' % (elapsed_time, self.packet_counter, len(pkt), self.name, self.ip))
                 self.packet_queue.put((elapsed_time, self.name, pkt))
 
-        elif self.type == TYPE_FILE_TRANSFER_CLIENT:
+        elif self.type == Constant.TYPE_FILE_TRANSFER_CLIENT:
             print('Connected new client for file transfer %s' % self.name)
+            # Not yet supported
         
-        elif self.type == TYPE_STATUS_CHECKER_CLIENT:
+        elif self.type == Constant.TYPE_ANDROID_CLIENT:
             print('Connected new client for status check %s' % self.name)
             while True:
-                msg = self.connection.recv(BUFFER_SIZE)
+                msg = self.connection.recv(Constant.BUFFER_SIZE)
                 if len(msg) == 0:
                     print('Disconnected status check client %s' % self.name)
                     break
                 
-                cmd = msg.decode('UTF-8')   # get command
+                tmp = msg.decode('UTF-8').split(', ')    # get command
+                cmd = tmp[0]
 
                 if cmd == 'CMD_STATUS':
-                    self.connection.send(str.encode(self.server_status_callback()))
-                
-                elif cmd == 'CMD_GET_TIME':
-                    self.connection.send(str.encode('%d' % (time.time() * 1000)))
-                    
+                    self.connection.send(str.encode(self.server_callback((Constant.EVENT_SERVER_STATUS,)))) 
+                elif cmd == 'CMD_GET_TIME': # return time in ms
+                    self.connection.send(str.encode('%d' % (time.time() * 1000)))                    
+                elif cmd == 'CMD_START_CSI':
+                    # make sure client sent 3 values separated by comma
+                    if len(tmp) < 3:
+                        self.connection.send(str.encode('Not enough arguments'))
+                    else:
+                        response = self.server_callback((Constant.EVENT_START_CSI, tmp[1], tmp[2], self.num))
+                        self.connection.send(str.encode(response))
+                elif cmd == 'CMD_STOP_CSI':
+                    response = self.server_callback((Constant.EVENT_STOP_CSI, self.num))
+                    self.connection.send(str.encode(response))
                 else:
                     print('Undefined command: %s' % cmd)
                     self.connection.send(str.encode('Undefined command: %s' % cmd))
 
         # close connection
         self.connection.close()
-        self.close_callback(self.num)
+        self.server_callback((Constant.EVENT_CLOSE_CONNECTION, self.num))
