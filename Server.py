@@ -104,7 +104,7 @@ class Server:
                     idle_time += check_interval
 
                 if idle_time > Constant.FILE_CLOSE_TIME:        # timeout -> close the opened file
-                    self.packet_queue.put(-1, None, None)
+                    self.packet_queue.put((-1, None, None))
                     self.flag_file_opened = False
             time.sleep(check_interval)
 
