@@ -7,7 +7,7 @@ import sys
 flag_server = False
 host = None
 port = None
-ch = 1
+ch = 13
 bw = 20
 
 try:
