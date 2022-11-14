@@ -16,6 +16,7 @@ class Filewriter(multiprocessing.Process):
             os.mkdir(DATA_FOLDER)
         filename = DATA_FOLDER + '/' + now.strftime('server_%y%m%d_%H%M%S.txt')
         self.file = open(filename, 'w')         # create file
+        self.file.write('## File creation time: %d ms\n', int(time.time() * 1000))
     
 
     def run(self):
