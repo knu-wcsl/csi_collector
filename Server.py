@@ -27,6 +27,7 @@ class Server:
 
     def __del__(self):                          # called when Ctrl+Z keys are pressed
         self.flag_server_is_running = False
+        self.server_socket.close()
     
 
     def run(self):                              # listen socket and accept new clients
@@ -224,6 +225,8 @@ class ConnectedClient:
                     break
             else:
                 time.sleep(SLEEP_TIME)
+        print('send_terminated')
+
 
 
     def csi_client_recv_thread(self):

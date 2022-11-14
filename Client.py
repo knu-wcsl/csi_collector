@@ -90,7 +90,7 @@ class Client:
                 self.collector.stop()
             else:
                 print('Unknown command: ' + msg[0])
-
+       
 
     # def run_send_to_server(self):
     #     server_status_check_interval = 1
